@@ -3,8 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from database import SessionLocal, engine, Base
-import models
+
 import schemas
+import crud
 
 Base.metadata.create_all(bind=engine)
 
@@ -12,8 +13,6 @@ app = FastAPI(
     title="Job Application Tracker API",
     version="2.0"
 )
-
-# ---------------- CORS ----------------
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,7 +22,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---------------- Database ----------------
 
 def get_db():
     db = SessionLocal()
@@ -32,7 +30,6 @@ def get_db():
     finally:
         db.close()
 
-# ---------------- Home ----------------
 
 @app.get("/")
 def home():
@@ -40,7 +37,6 @@ def home():
         "message": "Job Application Tracker Backend Running"
     }
 
-# ---------------- Create ----------------
 
 @app.post("/applications", response_model=schemas.ApplicationResponse)
 def create_application(
@@ -48,37 +44,21 @@ def create_application(
     db: Session = Depends(get_db)
 ):
 
-    duplicate = db.query(models.Application).filter(
-        models.Application.company == application.company,
-        models.Application.role == application.role
-    ).first()
+    result = crud.create_application(db, application)
 
-    if duplicate:
+    if result is None:
         raise HTTPException(
             status_code=400,
             detail="Application already exists"
         )
 
-    new_application = models.Application(
-        company=application.company,
-        role=application.role,
-        location=application.location,
-        status=application.status
-    )
+    return result
 
-    db.add(new_application)
-    db.commit()
-    db.refresh(new_application)
-
-    return new_application
-
-# ---------------- Read ----------------
 
 @app.get("/applications", response_model=list[schemas.ApplicationResponse])
 def get_applications(db: Session = Depends(get_db)):
-    return db.query(models.Application).all()
+    return crud.get_applications(db)
 
-# ---------------- Update ----------------
 
 @app.put("/applications/{application_id}",
          response_model=schemas.ApplicationResponse)
@@ -88,27 +68,20 @@ def update_application(
     db: Session = Depends(get_db)
 ):
 
-    existing = db.query(models.Application).filter(
-        models.Application.id == application_id
-    ).first()
+    result = crud.update_application(
+        db,
+        application_id,
+        application
+    )
 
-    if not existing:
+    if result is None:
         raise HTTPException(
             status_code=404,
             detail="Application not found"
         )
 
-    existing.company = application.company
-    existing.role = application.role
-    existing.location = application.location
-    existing.status = application.status
+    return result
 
-    db.commit()
-    db.refresh(existing)
-
-    return existing
-
-# ---------------- Delete ----------------
 
 @app.delete("/applications/{application_id}")
 def delete_application(
@@ -116,18 +89,16 @@ def delete_application(
     db: Session = Depends(get_db)
 ):
 
-    existing = db.query(models.Application).filter(
-        models.Application.id == application_id
-    ).first()
+    deleted = crud.delete_application(
+        db,
+        application_id
+    )
 
-    if not existing:
+    if not deleted:
         raise HTTPException(
             status_code=404,
             detail="Application not found"
         )
-
-    db.delete(existing)
-    db.commit()
 
     return {
         "message": "Application deleted successfully"
