@@ -2,22 +2,37 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Job Application Tracker</title>
+
     <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
 <div class="container">
 
-    <h1>💼 Job Application Tracker</h1>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+
+        <h1>💼 Job Application Tracker</h1>
+
+        <button onclick="logout()">
+            Logout
+        </button>
+
+    </div>
 
     <!-- Dashboard -->
+
     <div id="dashboard"></div>
 
     <!-- Add / Update Form -->
+
     <div class="section">
 
         <h2>Add Application</h2>
@@ -25,33 +40,40 @@
         <input type="hidden" id="applicationId">
 
         <div class="form-row">
+
             <label>Company</label>
+
             <input
                 type="text"
                 id="company"
-                placeholder="Google"
-                required>
+                placeholder="Google">
+
         </div>
 
         <div class="form-row">
+
             <label>Role</label>
+
             <input
                 type="text"
                 id="role"
-                placeholder="Python Developer"
-                required>
+                placeholder="Python Developer">
+
         </div>
 
         <div class="form-row">
+
             <label>Location</label>
+
             <input
                 type="text"
                 id="location"
-                placeholder="Bangalore"
-                required>
+                placeholder="Bangalore">
+
         </div>
 
         <div class="form-row">
+
             <label>Status</label>
 
             <select id="status">
@@ -66,34 +88,43 @@
         </div>
 
         <div class="form-row">
+
             <label>Applied Date</label>
+
             <input
                 type="date"
-                id="appliedDate"
-                required>
+                id="applied_date">
+
         </div>
 
         <div class="form-row">
+
             <label>Deadline Date</label>
+
             <input
                 type="date"
-                id="deadlineDate">
+                id="deadline_date">
+
         </div>
 
         <div class="form-row">
+
             <label>Interview Date</label>
+
             <input
                 type="date"
-                id="interviewDate">
+                id="interview_date">
+
         </div>
 
         <div class="form-row">
+
             <label>Notes</label>
 
             <textarea
                 id="notes"
-                rows="4"
-                placeholder="Interview preparation, HR remarks, follow-up notes..."></textarea>
+                rows="3"
+                placeholder="Write notes..."></textarea>
 
         </div>
 
@@ -121,7 +152,7 @@
 
     </div>
 
-    <!-- Filter + Sort -->
+    <!-- Filter -->
 
     <div class="section">
 
@@ -143,39 +174,9 @@
 
         </div>
 
-        <div class="form-row">
-
-            <label>Sort</label>
-
-            <select
-                id="sort"
-                onchange="sortApplications()">
-
-                <option value="">Select</option>
-
-                <option value="companyaz">
-                    Company A-Z
-                </option>
-
-                <option value="companyza">
-                    Company Z-A
-                </option>
-
-                <option value="status">
-                    Status
-                </option>
-
-                <option value="applied">
-                    Applied Date
-                </option>
-
-            </select>
-
-        </div>
-
     </div>
 
-    <!-- Applications -->
+    <!-- Table -->
 
     <div class="section">
 
@@ -190,4 +191,5 @@
 <script src="script.js"></script>
 
 </body>
+
 </html>

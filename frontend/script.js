@@ -1,4 +1,14 @@
-const API_URL = "https://job-application-tracker-ba5l.onrender.com";
+const API_URL = "http://127.0.0.1:8000";
+
+const token = localStorage.getItem("token");
+
+// ---------------- AUTH CHECK ----------------
+
+if (!token) {
+
+    window.location.href = "login.html";
+
+}
 
 let applications = [];
 let filteredApplications = [];
@@ -9,15 +19,37 @@ async function loadApplications() {
 
     try {
 
-        const response = await fetch(`${API_URL}/applications`);
+        const response = await fetch(
+
+            `${API_URL}/applications`,
+
+            {
+
+                headers: {
+
+                    Authorization: `Bearer ${token}`
+
+                }
+
+            }
+
+        );
 
         if (!response.ok) {
-            throw new Error("Failed to fetch applications");
+
+            if (response.status === 401) {
+
+                logout();
+
+                return;
+
+            }
+
+            throw new Error("Unable to fetch applications");
+
         }
 
         applications = await response.json();
-
-        alert(JSON.stringify(applications));
 
         filteredApplications = [...applications];
 
@@ -26,6 +58,7 @@ async function loadApplications() {
         displayApplications(filteredApplications);
 
     }
+
     catch (error) {
 
         console.error(error);
@@ -41,15 +74,29 @@ async function loadApplications() {
 
 async function addApplication() {
 
-    const company = document.getElementById("company").value.trim();
-    const role = document.getElementById("role").value.trim();
-    const location = document.getElementById("location").value.trim();
-    const status = document.getElementById("status").value;
+    const company =
+        document.getElementById("company").value.trim();
 
-    const applied_date = document.getElementById("appliedDate").value;
-    const deadline_date = document.getElementById("deadlineDate").value;
-    const interview_date = document.getElementById("interviewDate").value;
-    const notes = document.getElementById("notes").value.trim();
+    const role =
+        document.getElementById("role").value.trim();
+
+    const location =
+        document.getElementById("location").value.trim();
+
+    const status =
+        document.getElementById("status").value;
+
+    const applied_date =
+        document.getElementById("applied_date").value;
+
+    const deadline_date =
+        document.getElementById("deadline_date").value || null;
+
+    const interview_date =
+        document.getElementById("interview_date").value || null;
+
+    const notes =
+        document.getElementById("notes").value.trim() || null;
 
     if (
         company === "" ||
@@ -71,31 +118,41 @@ async function addApplication() {
         location,
         status,
         applied_date,
-        deadline_date: deadline_date || null,
-        interview_date: interview_date || null,
+        deadline_date,
+        interview_date,
         notes
 
     };
 
     try {
 
-        const response = await fetch(`${API_URL}/applications`, {
+        const response = await fetch(
 
-            method: "POST",
+            `${API_URL}/applications`,
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+            {
 
-            body: JSON.stringify(data)
+                method: "POST",
 
-        });
+                headers: {
+
+                    "Content-Type": "application/json",
+
+                    Authorization: `Bearer ${token}`
+
+                },
+
+                body: JSON.stringify(data)
+
+            }
+
+        );
+
+        const result = await response.json();
 
         if (!response.ok) {
 
-            const error = await response.json();
-
-            alert(error.detail);
+            alert(result.detail);
 
             return;
 
@@ -118,6 +175,7 @@ async function addApplication() {
     }
 
 }
+
 // ---------------- DASHBOARD ----------------
 
 function updateDashboard() {
@@ -178,9 +236,7 @@ function updateDashboard() {
     </div>
 
     `;
-
 }
-
 // ---------------- DISPLAY TABLE ----------------
 
 function displayApplications(data) {
@@ -216,8 +272,6 @@ function displayApplications(data) {
 
     data.forEach(app => {
 
-        console.log(app);
-
         output += `
 
         <tr>
@@ -232,11 +286,11 @@ function displayApplications(data) {
 
             <td>${app.applied_date}</td>
 
-            <td>${app.deadline_date ?? "-"}</td>
+            <td>${app.deadline_date || "-"}</td>
 
-            <td>${app.interview_date ?? "-"}</td>
+            <td>${app.interview_date || "-"}</td>
 
-            <td>${app.notes ? app.notes : "-"}</td>
+            <td>${app.notes || "-"}</td>
 
             <td>
 
@@ -269,6 +323,7 @@ function displayApplications(data) {
     document.getElementById("result").innerHTML = output;
 
 }
+
 // ---------------- SEARCH ----------------
 
 function searchApplication() {
@@ -290,7 +345,8 @@ function searchApplication() {
 
 function filterApplications() {
 
-    const filter = document.getElementById("filter").value;
+    const filter =
+        document.getElementById("filter").value;
 
     if (filter === "All") {
 
@@ -310,58 +366,6 @@ function filterApplications() {
 
 }
 
-// ---------------- SORT ----------------
-
-function sortApplications() {
-
-    const sort = document.getElementById("sort").value;
-
-    if (sort === "companyaz") {
-
-        filteredApplications.sort((a, b) =>
-            a.company.localeCompare(b.company)
-        );
-
-    }
-
-    else if (sort === "companyza") {
-
-        filteredApplications.sort((a, b) =>
-            b.company.localeCompare(a.company)
-        );
-
-    }
-
-    else if (sort === "status") {
-
-        const order = {
-
-            Applied: 1,
-            Interview: 2,
-            Selected: 3,
-            Rejected: 4
-
-        };
-
-        filteredApplications.sort((a, b) =>
-            order[a.status] - order[b.status]
-        );
-
-    }
-
-    else if (sort === "applied") {
-
-        filteredApplications.sort(
-            (a, b) =>
-                new Date(b.applied_date) -
-                new Date(a.applied_date)
-        );
-
-    }
-
-    displayApplications(filteredApplications);
-
-}
 // ---------------- EDIT ----------------
 
 function editApplication(id) {
@@ -370,23 +374,28 @@ function editApplication(id) {
 
     if (!app) return;
 
-    document.getElementById("applicationId").value = app.id;
+    document.getElementById("applicationId").value =
+        app.id;
 
-    document.getElementById("company").value = app.company;
+    document.getElementById("company").value =
+        app.company;
 
-    document.getElementById("role").value = app.role;
+    document.getElementById("role").value =
+        app.role;
 
-    document.getElementById("location").value = app.location;
+    document.getElementById("location").value =
+        app.location;
 
-    document.getElementById("status").value = app.status;
+    document.getElementById("status").value =
+        app.status;
 
-    document.getElementById("appliedDate").value =
-        app.applied_date || "";
+    document.getElementById("applied_date").value =
+        app.applied_date;
 
-    document.getElementById("deadlineDate").value =
+    document.getElementById("deadline_date").value =
         app.deadline_date || "";
 
-    document.getElementById("interviewDate").value =
+    document.getElementById("interview_date").value =
         app.interview_date || "";
 
     document.getElementById("notes").value =
@@ -411,24 +420,34 @@ function editApplication(id) {
 
 async function updateApplication() {
 
-    const id = document.getElementById("applicationId").value;
+    const id =
+        document.getElementById("applicationId").value;
 
     const data = {
 
-        company: document.getElementById("company").value.trim(),
-        role: document.getElementById("role").value.trim(),
-        location: document.getElementById("location").value.trim(),
-        status: document.getElementById("status").value,
+        company:
+            document.getElementById("company").value.trim(),
 
-        applied_date: document.getElementById("appliedDate").value,
+        role:
+            document.getElementById("role").value.trim(),
+
+        location:
+            document.getElementById("location").value.trim(),
+
+        status:
+            document.getElementById("status").value,
+
+        applied_date:
+            document.getElementById("applied_date").value,
+
         deadline_date:
-            document.getElementById("deadlineDate").value || null,
+            document.getElementById("deadline_date").value || null,
 
         interview_date:
-            document.getElementById("interviewDate").value || null,
+            document.getElementById("interview_date").value || null,
 
         notes:
-            document.getElementById("notes").value.trim()
+            document.getElementById("notes").value.trim() || null
 
     };
 
@@ -457,7 +476,9 @@ async function updateApplication() {
 
                 headers: {
 
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+
+                    Authorization: `Bearer ${token}`
 
                 },
 
@@ -467,11 +488,11 @@ async function updateApplication() {
 
         );
 
+        const result = await response.json();
+
         if (!response.ok) {
 
-            const error = await response.json();
-
-            alert(error.detail);
+            alert(result.detail);
 
             return;
 
@@ -500,6 +521,7 @@ async function updateApplication() {
     }
 
 }
+
 // ---------------- DELETE ----------------
 
 async function deleteApplication(id) {
@@ -512,17 +534,33 @@ async function deleteApplication(id) {
 
     try {
 
-        await fetch(
+        const response = await fetch(
 
             `${API_URL}/applications/${id}`,
 
             {
 
-                method: "DELETE"
+                method: "DELETE",
+
+                headers: {
+
+                    Authorization: `Bearer ${token}`
+
+                }
 
             }
 
         );
+
+        if (!response.ok) {
+
+            const result = await response.json();
+
+            alert(result.detail);
+
+            return;
+
+        }
 
         await loadApplications();
 
@@ -554,15 +592,26 @@ function clearForm() {
 
     document.getElementById("status").value = "Applied";
 
-    document.getElementById("appliedDate").value = "";
+    document.getElementById("applied_date").value = "";
 
-    document.getElementById("deadlineDate").value = "";
+    document.getElementById("deadline_date").value = "";
 
-    document.getElementById("interviewDate").value = "";
+    document.getElementById("interview_date").value = "";
 
     document.getElementById("notes").value = "";
 
 }
+
+// ---------------- LOGOUT ----------------
+
+function logout() {
+
+    localStorage.removeItem("token");
+
+    window.location.href = "login.html";
+
+}
+
 // ---------------- INITIAL LOAD ----------------
 
 loadApplications();
