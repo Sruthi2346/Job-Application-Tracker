@@ -17,6 +17,8 @@ async function loadApplications() {
 
         applications = await response.json();
 
+        alert(JSON.stringify(applications));
+
         filteredApplications = [...applications];
 
         updateDashboard();
@@ -44,9 +46,19 @@ async function addApplication() {
     const location = document.getElementById("location").value.trim();
     const status = document.getElementById("status").value;
 
-    if (company === "" || role === "" || location === "") {
+    const applied_date = document.getElementById("appliedDate").value;
+    const deadline_date = document.getElementById("deadlineDate").value;
+    const interview_date = document.getElementById("interviewDate").value;
+    const notes = document.getElementById("notes").value.trim();
 
-        alert("Please fill all fields.");
+    if (
+        company === "" ||
+        role === "" ||
+        location === "" ||
+        applied_date === ""
+    ) {
+
+        alert("Please fill all required fields.");
 
         return;
 
@@ -57,7 +69,11 @@ async function addApplication() {
         company,
         role,
         location,
-        status
+        status,
+        applied_date,
+        deadline_date: deadline_date || null,
+        interview_date: interview_date || null,
+        notes
 
     };
 
@@ -102,7 +118,6 @@ async function addApplication() {
     }
 
 }
-
 // ---------------- DASHBOARD ----------------
 
 function updateDashboard() {
@@ -185,11 +200,14 @@ function displayApplications(data) {
 
         <tr>
 
-            <th>ID</th>
             <th>Company</th>
             <th>Role</th>
             <th>Location</th>
             <th>Status</th>
+            <th>Applied</th>
+            <th>Deadline</th>
+            <th>Interview</th>
+            <th>Notes</th>
             <th>Actions</th>
 
         </tr>
@@ -198,11 +216,11 @@ function displayApplications(data) {
 
     data.forEach(app => {
 
+        console.log(app);
+
         output += `
 
         <tr>
-
-            <td>${app.id}</td>
 
             <td>${app.company}</td>
 
@@ -211,6 +229,14 @@ function displayApplications(data) {
             <td>${app.location}</td>
 
             <td>${app.status}</td>
+
+            <td>${app.applied_date}</td>
+
+            <td>${app.deadline_date ?? "-"}</td>
+
+            <td>${app.interview_date ?? "-"}</td>
+
+            <td>${app.notes ? app.notes : "-"}</td>
 
             <td>
 
@@ -323,10 +349,19 @@ function sortApplications() {
 
     }
 
+    else if (sort === "applied") {
+
+        filteredApplications.sort(
+            (a, b) =>
+                new Date(b.applied_date) -
+                new Date(a.applied_date)
+        );
+
+    }
+
     displayApplications(filteredApplications);
 
 }
-
 // ---------------- EDIT ----------------
 
 function editApplication(id) {
@@ -344,6 +379,18 @@ function editApplication(id) {
     document.getElementById("location").value = app.location;
 
     document.getElementById("status").value = app.status;
+
+    document.getElementById("appliedDate").value =
+        app.applied_date || "";
+
+    document.getElementById("deadlineDate").value =
+        app.deadline_date || "";
+
+    document.getElementById("interviewDate").value =
+        app.interview_date || "";
+
+    document.getElementById("notes").value =
+        app.notes || "";
 
     document.getElementById("saveBtn").innerHTML =
         "Update Application";
@@ -371,17 +418,28 @@ async function updateApplication() {
         company: document.getElementById("company").value.trim(),
         role: document.getElementById("role").value.trim(),
         location: document.getElementById("location").value.trim(),
-        status: document.getElementById("status").value
+        status: document.getElementById("status").value,
+
+        applied_date: document.getElementById("appliedDate").value,
+        deadline_date:
+            document.getElementById("deadlineDate").value || null,
+
+        interview_date:
+            document.getElementById("interviewDate").value || null,
+
+        notes:
+            document.getElementById("notes").value.trim()
 
     };
 
     if (
         data.company === "" ||
         data.role === "" ||
-        data.location === ""
+        data.location === "" ||
+        data.applied_date === ""
     ) {
 
-        alert("Please fill all fields.");
+        alert("Please fill all required fields.");
 
         return;
 
@@ -442,7 +500,6 @@ async function updateApplication() {
     }
 
 }
-
 // ---------------- DELETE ----------------
 
 async function deleteApplication(id) {
@@ -497,8 +554,15 @@ function clearForm() {
 
     document.getElementById("status").value = "Applied";
 
-}
+    document.getElementById("appliedDate").value = "";
 
+    document.getElementById("deadlineDate").value = "";
+
+    document.getElementById("interviewDate").value = "";
+
+    document.getElementById("notes").value = "";
+
+}
 // ---------------- INITIAL LOAD ----------------
 
 loadApplications();

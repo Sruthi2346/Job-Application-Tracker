@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from database import SessionLocal, engine, Base
-
 import schemas
 import crud
 
@@ -11,8 +10,10 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Job Application Tracker API",
-    version="2.0"
+    version="2.1"
 )
+
+# ---------------- CORS ----------------
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,6 +24,8 @@ app.add_middleware(
 )
 
 
+# ---------------- Database ----------------
+
 def get_db():
     db = SessionLocal()
     try:
@@ -31,12 +34,16 @@ def get_db():
         db.close()
 
 
+# ---------------- Home ----------------
+
 @app.get("/")
 def home():
     return {
         "message": "Job Application Tracker Backend Running"
     }
 
+
+# ---------------- Create ----------------
 
 @app.post("/applications", response_model=schemas.ApplicationResponse)
 def create_application(
@@ -55,13 +62,21 @@ def create_application(
     return result
 
 
+# ---------------- Read ----------------
+
 @app.get("/applications", response_model=list[schemas.ApplicationResponse])
-def get_applications(db: Session = Depends(get_db)):
+def get_applications(
+    db: Session = Depends(get_db)
+):
     return crud.get_applications(db)
 
 
-@app.put("/applications/{application_id}",
-         response_model=schemas.ApplicationResponse)
+# ---------------- Update ----------------
+
+@app.put(
+    "/applications/{application_id}",
+    response_model=schemas.ApplicationResponse
+)
 def update_application(
     application_id: int,
     application: schemas.ApplicationCreate,
@@ -82,6 +97,8 @@ def update_application(
 
     return result
 
+
+# ---------------- Delete ----------------
 
 @app.delete("/applications/{application_id}")
 def delete_application(
