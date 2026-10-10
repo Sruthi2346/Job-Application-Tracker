@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+
+from sqlalchemy import Column, Integer, String, ForeignKey, Text
 from sqlalchemy.orm import relationship
 
 from database import Base
@@ -7,16 +8,15 @@ from database import Base
 # ---------------- USERS ----------------
 
 class User(Base):
-
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
 
-    username = Column(String, unique=True, nullable=False)
+    username = Column(String(100), unique=True, nullable=False)
 
-    email = Column(String, unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
 
-    password = Column(String, nullable=False)
+    password = Column(String(255), nullable=False)
 
     applications = relationship(
         "Application",
@@ -28,26 +28,25 @@ class User(Base):
 # ---------------- APPLICATIONS ----------------
 
 class Application(Base):
-
     __tablename__ = "applications"
 
     id = Column(Integer, primary_key=True, index=True)
 
-    company = Column(String, nullable=False)
+    company = Column(String(255), nullable=False)
 
-    role = Column(String, nullable=False)
+    role = Column(String(255), nullable=False)
 
-    location = Column(String, nullable=False)
+    location = Column(String(255), nullable=False)
 
-    status = Column(String, nullable=False)
+    status = Column(String(50), nullable=False)
 
-    applied_date = Column(String, nullable=False)
+    applied_date = Column(String(30), nullable=False)
 
-    deadline_date = Column(String, nullable=True)
+    deadline_date = Column(String(30), nullable=True)
 
-    interview_date = Column(String, nullable=True)
+    interview_date = Column(String(30), nullable=True)
 
-    notes = Column(String, nullable=True)
+    notes = Column(Text, nullable=True)
 
     user_id = Column(
         Integer,
